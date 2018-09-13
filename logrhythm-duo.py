@@ -2,7 +2,8 @@
 from __future__ import absolute_import
 from __future__ import print_function
 import six.moves.configparser
-import optparse
+import argparse
+import json
 import os
 import sys
 import time
@@ -15,127 +16,99 @@ import urllib.parse
 
 class BaseLog(object):
 
-    def __init__(self, admin_api, path):
+    def __init__(self, admin_api):
         self.admin_api = admin_api
-        self.path = path
-        self.logname = self.__class__.__name__
-
-        self.mintime = 0
-        self.events = []
+        self.mintime   = 0
+        self.events    = []
 
     def get_events(self):
         raise NotImplementedError
 
-    def print_events(self):
+    def logs(self):
         raise NotImplementedError
 
-    def get_last_timestamp_path(self):
+    def set_mintime(self,new_mintime):
+        self.mintime = new_mintime
+
+    def update_mintime(self):
         """
-        Returns the path to the file containing the timestamp of the last
-        event fetched.
+            Determine the mintime based on the timestamp of the last event
         """
-        filename = self.logname + "_last_timestamp_" + self.admin_api.host
-        path = os.path.join(self.path, filename)
-        return path
+        if self.events:
+            self.mintime = self.events[-1]['timestamp'] + 1
 
-    def get_mintime(self):
-        """
-            Updates self.mintime which is the minimum timestamp of
-            log events we want to fetch.
-            self.mintime is > all event timestamps we have already fetched.
-        """
-        try:
-            # Only fetch events that come after timestamp of last event
-            path = self.get_last_timestamp_path()
-            self.mintime = int(open(path).read().strip()) + 1
-        except IOError:
-            pass
-
-    def write_last_timestamp(self):
-        """
-            Store last_timestamp so that we don't fetch the same events again
-        """
-        if not self.events:
-            # Do not update last_timestamp
-            return
-
-        last_timestamp = 0
-        for event in self.events:
-            last_timestamp = max(last_timestamp, event['timestamp'])
-
-        path = self.get_last_timestamp_path()
-        f = open(path, "w")
-        f.write(str(last_timestamp))
-        f.close()
-
-
-
+        return self.mintime
 
 class AdministratorLog(BaseLog):
-    def __init__(self, admin_api, path):
-        BaseLog.__init__(self, admin_api, path)
+    def __init__(self, admin_api):
+        BaseLog.__init__(self, admin_api)
 
     def get_events(self):
         self.events = self.admin_api.get_administrator_log(
             mintime=self.mintime,
         )
 
-    def print_events(self):
+    def logs(self):
         """
-        Print events in a format suitable for Splunk.
+        Return an list of log messages
         """
+        logs = []
+        friendly_label = {
+            'admin_login': "Admin Login",
+            'admin_create': "Create Admin",
+            'admin_update': "Update Admin",
+            'admin_delete': "Delete Admin",
+            'customer_update': "Update Customer",
+            'group_create': "Create Group",
+            'group_udpate': "Update Group",
+            'group_delete': "Delete Group",
+            'integration_create': "Create Integration",
+            'integration_update': "Update Integration",
+            'integration_delete': "Delete Integration",
+            'phone_create': "Create Phone",
+            'phone_update': "Update Phone",
+            'phone_delete': "Delete Phone",
+            'user_create': "Create User",
+            'user_update': "Update User",
+            'user_delete': "Delete User"
+        }
+        fmtstr_template = '%(timestamp)s,' \
+            'host="%(host)s",' \
+            'eventtype="%(eventtype)s",' \
+            'username="%(username)s",' \
+            'action="%(actionlabel)s"'
+
         for event in self.events:
-            event['ctime'] = time.ctime(event['timestamp'])
-            event['actionlabel'] = {
-                'admin_login': "Admin Login",
-                'admin_create': "Create Admin",
-                'admin_update': "Update Admin",
-                'admin_delete': "Delete Admin",
-                'customer_update': "Update Customer",
-                'group_create': "Create Group",
-                'group_udpate': "Update Group",
-                'group_delete': "Delete Group",
-                'integration_create': "Create Integration",
-                'integration_update': "Update Integration",
-                'integration_delete': "Delete Integration",
-                'phone_create': "Create Phone",
-                'phone_update': "Update Phone",
-                'phone_delete': "Delete Phone",
-                'user_create': "Create User",
-                'user_update': "Update User",
-                'user_delete': "Delete User"}.get(
+            fmtstr = fmtstr_template
+            event['actionlabel'] = friendly_label.get(
                 event['action'], event['action'])
 
-            fmtstr = '%(timestamp)s,' \
-                     'host="%(host)s",' \
-                     'eventtype="%(eventtype)s",' \
-                     'username="%(username)s",' \
-                     'action="%(actionlabel)s"'
+
             if event['object']:
                 fmtstr += ',object="%(object)s"'
             if event['description']:
                 fmtstr += ',description="%(description)s"'
 
-            print(fmtstr % event)
+            logs.append(fmtstr % event)
+
+        return logs
 
 
 class AuthenticationLog(BaseLog):
-    def __init__(self, admin_api, path):
-        BaseLog.__init__(self, admin_api, path)
+    def __init__(self, admin_api):
+        BaseLog.__init__(self, admin_api)
 
     def get_events(self):
         self.events = self.admin_api.get_authentication_log(
             mintime=self.mintime,
         )
 
-    def print_events(self):
+    def logs(self):
         """
-        Print events in a format suitable for Splunk.
+        Return an list of log messages
         """
-        for event in self.events:
-            event['ctime'] = time.ctime(event['timestamp'])
-
-            fmtstr = (
+        logs = []
+        fmtstr = (
                 '%(timestamp)s,'
                 'host="%(host)s",'
                 'eventtype="%(eventtype)s",'
@@ -147,36 +120,38 @@ class AuthenticationLog(BaseLog):
                 'integration="%(integration)s",'
                 'newenrollment="%(new_enrollment)s"'
             )
+        for event in self.events:
+            logs.append(fmtstr % event)
 
-            print(fmtstr % event)
+        return logs
 
 
 class TelephonyLog(BaseLog):
-    def __init__(self, admin_api, path):
-        BaseLog.__init__(self, admin_api, path)
+    def __init__(self, admin_api):
+        BaseLog.__init__(self, admin_api)
 
     def get_events(self):
         self.events = self.admin_api.get_telephony_log(
             mintime=self.mintime,
         )
 
-    def print_events(self):
+    def logs(self):
         """
-        Print events in a format suitable for Splunk.
+        Return an list of log messages
         """
+        logs = []
+        fmtstr = '%(timestamp)s,' \
+                 'host="%(host)s",' \
+                 'eventtype="%(eventtype)s",' \
+                 'context="%(context)s",' \
+                 'type="%(type)s",' \
+                 'phone="%(phone)s",' \
+                 'credits="%(credits)s"'
         for event in self.events:
-            event['ctime'] = time.ctime(event['timestamp'])
             event['host'] = self.admin_api.host
+            logs.append(fmtstr % event)
 
-            fmtstr = '%(timestamp)s,' \
-                     'host="%(host)s",' \
-                     'eventtype="%(eventtype)s",' \
-                     'context="%(context)s",' \
-                     'type="%(type)s",' \
-                     'phone="%(phone)s",' \
-                     'credits="%(credits)s"'
-
-            print(fmtstr % event)
+        return logs
 
 
 def admin_api_from_config(config_path):
@@ -207,29 +182,60 @@ def admin_api_from_config(config_path):
 
     return ret
 
+def parse_args():
+    parser = argparse.ArgumentParser(description='Download Duo logs to the local filesystem for LogRhythm consumption.')
+
+    parser.add_argument("-c", "--config-file", help="Path to duo.conf, defaults to duo.conf in same directory as this script.",
+                        default=os.path.join(sys.path[0], 'duo.conf'))
+    parser.add_argument("-l", "--log-path", help="Path to store the log file in, defaults to the 'logs' directory beneath this script.",
+                        default=os.path.join(sys.path[0], 'logs'))
+    parser.add_argument("-s", "--state-path", help="Path to store the state file in, defaults to the same directory as the log file.")
+    return parser.parse_args()
+
+def load_state_from_file(statefile):
+    try:
+        with open(statefile, 'r') as json_file:
+            state = json.load(json_file)
+    except IOError:
+        state = {}
+    return state
+
+def write_state_to_file(statefile,state):
+    try:
+        with open(statefile, 'w') as outfile:
+            json.dump(state, outfile)
+    except IOError:
+        print("Unable to write to " + statefile + ", exiting.")
+        sys.exit(1)
 
 def main():
-    parser = optparse.OptionParser(usage="%prog [<config file path>]")
-    (options, args) = parser.parse_args(sys.argv[1:])
+    args        = parse_args()
+    config_path = args.config_file
+    log_path    = args.log_path
+    state_path  = args.state_path if args.state_path else os.path.join(args.log_path,'.state.json')
 
-    if len(sys.argv) == 1:
-        config_path = os.path.abspath(__file__)
-        config_path = os.path.dirname(config_path)
-        config_path = os.path.join(config_path, "duo.conf")
-    else:
-        config_path = os.path.abspath(sys.argv[1])
+    # Load our last timestamps to prevent dupes
+    state = load_state_from_file(state_path)
 
-    admin_api = admin_api_from_config(config_path)
-
-    # Use the directory of the config file to store the last event tstamps
-    path = os.path.dirname(config_path)
+    admin_api   = admin_api_from_config(config_path)
 
     for logclass in (AdministratorLog, AuthenticationLog, TelephonyLog):
-        log = logclass(admin_api, path)
-        log.get_mintime()
-        #log.get_events()
-        #log.print_events()
-        log.write_last_timestamp()
+        log = logclass(admin_api)
+        state_index = log.__class__.__name__
+        try:
+            mintime = state[state_index]['last_timestamp'] or 0
+        except KeyError:
+            mintime = 0
+            state[state_index] = {'last_timestamp': 0}
+
+        log.set_mintime(mintime)
+        log.get_events()
+        with open(os.path.join(log_path, log.__class__.__name__) + ".log", 'w') as f:
+            for line in log.logs():
+                f.write("%s\n" % line)
+        state[state_index]['last_timestamp'] = log.update_mintime()
+
+    write_state_to_file(state_path, state)
 
 if __name__ == '__main__':
     main()
