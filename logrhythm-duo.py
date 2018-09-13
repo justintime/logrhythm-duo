@@ -15,10 +15,10 @@ import urllib.parse
 
 class BaseLog(object):
 
-    def __init__(self, admin_api, path, logname):
+    def __init__(self, admin_api, path):
         self.admin_api = admin_api
         self.path = path
-        self.logname = logname
+        self.logname = self.__class__.__name__
 
         self.mintime = 0
         self.events = []
@@ -73,7 +73,7 @@ class BaseLog(object):
 
 class AdministratorLog(BaseLog):
     def __init__(self, admin_api, path):
-        BaseLog.__init__(self, admin_api, path, "administrator")
+        BaseLog.__init__(self, admin_api, path)
 
     def get_events(self):
         self.events = self.admin_api.get_administrator_log(
@@ -121,7 +121,7 @@ class AdministratorLog(BaseLog):
 
 class AuthenticationLog(BaseLog):
     def __init__(self, admin_api, path):
-        BaseLog.__init__(self, admin_api, path, "authentication")
+        BaseLog.__init__(self, admin_api, path)
 
     def get_events(self):
         self.events = self.admin_api.get_authentication_log(
@@ -153,7 +153,7 @@ class AuthenticationLog(BaseLog):
 
 class TelephonyLog(BaseLog):
     def __init__(self, admin_api, path):
-        BaseLog.__init__(self, admin_api, path, "telephony")
+        BaseLog.__init__(self, admin_api, path)
 
     def get_events(self):
         self.events = self.admin_api.get_telephony_log(
@@ -227,8 +227,8 @@ def main():
     for logclass in (AdministratorLog, AuthenticationLog, TelephonyLog):
         log = logclass(admin_api, path)
         log.get_mintime()
-        log.get_events()
-        log.print_events()
+        #log.get_events()
+        #log.print_events()
         log.write_last_timestamp()
 
 if __name__ == '__main__':
