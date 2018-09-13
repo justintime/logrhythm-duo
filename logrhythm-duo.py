@@ -4,11 +4,14 @@ from __future__ import print_function
 import six.moves.configparser
 import argparse
 import json
+import logging
 import os
 import sys
 import time
 
 import duo_client
+
+from logging.handlers import TimedRotatingFileHandler
 
 # For proxy support
 import urllib.parse
@@ -16,15 +19,30 @@ import urllib.parse
 
 class BaseLog(object):
 
-    def __init__(self, admin_api):
+    def __init__(self, admin_api, log_path):
         self.admin_api = admin_api
         self.mintime   = 0
         self.events    = []
 
+        # Set up our logger
+        log_file   = os.path.join(log_path, self.__class__.__name__) + ".log"
+        logger     = logging.getLogger(self.__class__.__name__)
+        formatter  = logging.Formatter('%(message)s')
+        loghandler = TimedRotatingFileHandler(log_file,
+                                                       when='midnight',
+                                                       interval=1,
+                                                       backupCount=7)
+        loghandler.setLevel(logging.INFO)
+        logger.setLevel(logging.INFO)
+        loghandler.setFormatter(formatter)
+        logger.addHandler(loghandler)
+
+        self.logger = logger
+
     def get_events(self):
         raise NotImplementedError
 
-    def logs(self):
+    def write_logs(self):
         raise NotImplementedError
 
     def set_mintime(self,new_mintime):
@@ -40,19 +58,18 @@ class BaseLog(object):
         return self.mintime
 
 class AdministratorLog(BaseLog):
-    def __init__(self, admin_api):
-        BaseLog.__init__(self, admin_api)
+    def __init__(self, admin_api, log_path):
+        BaseLog.__init__(self, admin_api, log_path)
 
     def get_events(self):
         self.events = self.admin_api.get_administrator_log(
             mintime=self.mintime,
         )
 
-    def logs(self):
+    def write_logs(self):
         """
         Return an list of log messages
         """
-        logs = []
         friendly_label = {
             'admin_login': "Admin Login",
             'admin_create': "Create Admin",
@@ -89,25 +106,23 @@ class AdministratorLog(BaseLog):
             if event['description']:
                 fmtstr += ',description="%(description)s"'
 
-            logs.append(fmtstr % event)
+            self.logger.info(fmtstr % event)
 
-        return logs
 
 
 class AuthenticationLog(BaseLog):
-    def __init__(self, admin_api):
-        BaseLog.__init__(self, admin_api)
+    def __init__(self, admin_api, log_path):
+        BaseLog.__init__(self, admin_api, log_path)
 
     def get_events(self):
         self.events = self.admin_api.get_authentication_log(
             mintime=self.mintime,
         )
 
-    def logs(self):
+    def write_logs(self):
         """
         Return an list of log messages
         """
-        logs = []
         fmtstr = (
                 '%(timestamp)s,'
                 'host="%(host)s",'
@@ -121,25 +136,23 @@ class AuthenticationLog(BaseLog):
                 'newenrollment="%(new_enrollment)s"'
             )
         for event in self.events:
-            logs.append(fmtstr % event)
+            self.logger.info(fmtstr % event)
 
-        return logs
 
 
 class TelephonyLog(BaseLog):
-    def __init__(self, admin_api):
-        BaseLog.__init__(self, admin_api)
+    def __init__(self, admin_api, log_path):
+        BaseLog.__init__(self, admin_api, log_path)
 
     def get_events(self):
         self.events = self.admin_api.get_telephony_log(
             mintime=self.mintime,
         )
 
-    def logs(self):
+    def write_logs(self):
         """
         Return an list of log messages
         """
-        logs = []
         fmtstr = '%(timestamp)s,' \
                  'host="%(host)s",' \
                  'eventtype="%(eventtype)s",' \
@@ -149,10 +162,7 @@ class TelephonyLog(BaseLog):
                  'credits="%(credits)s"'
         for event in self.events:
             event['host'] = self.admin_api.host
-            logs.append(fmtstr % event)
-
-        return logs
-
+            self.logger.info(fmtstr % event)
 
 def admin_api_from_config(config_path):
     """
@@ -220,7 +230,7 @@ def main():
     admin_api   = admin_api_from_config(config_path)
 
     for logclass in (AdministratorLog, AuthenticationLog, TelephonyLog):
-        log = logclass(admin_api)
+        log = logclass(admin_api,log_path)
         state_index = log.__class__.__name__
         try:
             mintime = state[state_index]['last_timestamp'] or 0
@@ -230,9 +240,7 @@ def main():
 
         log.set_mintime(mintime)
         log.get_events()
-        with open(os.path.join(log_path, log.__class__.__name__) + ".log", 'w') as f:
-            for line in log.logs():
-                f.write("%s\n" % line)
+        log.write_logs()
         state[state_index]['last_timestamp'] = log.update_mintime()
 
     write_state_to_file(state_path, state)
