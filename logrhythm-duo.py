@@ -8,11 +8,8 @@ import logging
 import os
 import sys
 import time
-
 import duo_client
-
 from logging.handlers import TimedRotatingFileHandler
-
 # For proxy support
 import urllib.parse
 
@@ -29,9 +26,9 @@ class BaseLog(object):
         logger     = logging.getLogger(self.__class__.__name__)
         formatter  = logging.Formatter('%(message)s')
         loghandler = TimedRotatingFileHandler(log_file,
-                                                       when='midnight',
-                                                       interval=1,
-                                                       backupCount=7)
+                                              when='midnight',
+                                              interval=1,
+                                              backupCount=7)
         loghandler.setLevel(logging.INFO)
         logger.setLevel(logging.INFO)
         loghandler.setFormatter(formatter)
@@ -40,6 +37,15 @@ class BaseLog(object):
         self.logger = logger
 
     def get_events(self):
+        try:
+            self.fetch_events()
+        except RuntimeError as e:
+            errmsg = e.args[0]
+            if errmsg == 'Received 429 Too Many Requests':
+                print("Duo is throttling requests, exiting.")
+                sys.exit(0)
+
+    def fetch_events(self):
         raise NotImplementedError
 
     def write_logs(self):
@@ -61,7 +67,8 @@ class AdministratorLog(BaseLog):
     def __init__(self, admin_api, log_path):
         BaseLog.__init__(self, admin_api, log_path)
 
-    def get_events(self):
+
+    def fetch_events(self):
         self.events = self.admin_api.get_administrator_log(
             mintime=self.mintime,
         )
@@ -114,7 +121,7 @@ class AuthenticationLog(BaseLog):
     def __init__(self, admin_api, log_path):
         BaseLog.__init__(self, admin_api, log_path)
 
-    def get_events(self):
+    def fetch_events(self):
         self.events = self.admin_api.get_authentication_log(
             mintime=self.mintime,
         )
@@ -144,7 +151,8 @@ class TelephonyLog(BaseLog):
     def __init__(self, admin_api, log_path):
         BaseLog.__init__(self, admin_api, log_path)
 
-    def get_events(self):
+
+    def fetch_events(self):
         self.events = self.admin_api.get_telephony_log(
             mintime=self.mintime,
         )
@@ -200,6 +208,7 @@ def parse_args():
     parser.add_argument("-l", "--log-path", help="Path to store the log file in, defaults to the 'logs' directory beneath this script.",
                         default=os.path.join(sys.path[0], 'logs'))
     parser.add_argument("-s", "--state-path", help="Path to store the state file in, defaults to the same directory as the log file.")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Verbose mode.")
     return parser.parse_args()
 
 def load_state_from_file(statefile):
@@ -219,18 +228,25 @@ def write_state_to_file(statefile,state):
         sys.exit(1)
 
 def main():
+    # Parse the commandline args, load our config, and set our paths
     args        = parse_args()
     config_path = args.config_file
     log_path    = args.log_path
-    state_path  = args.state_path if args.state_path else os.path.join(args.log_path,'.state.json')
+    state_path  = args.state_path if args.state_path else args.log_path
+    state_file  = os.path.join(state_path,'.state.json')
+    if not os.path.exists(log_path):
+        os.makedirs(log_path)
 
     # Load our last timestamps to prevent dupes
-    state = load_state_from_file(state_path)
+    state = load_state_from_file(state_file)
 
+    # This is our object we interact with to query Duo's Admin API
     admin_api   = admin_api_from_config(config_path)
 
     for logclass in (AdministratorLog, AuthenticationLog, TelephonyLog):
         log = logclass(admin_api,log_path)
+
+        # Load our previous state, creating the default if it doesn't exist
         state_index = log.__class__.__name__
         try:
             mintime = state[state_index]['last_timestamp'] or 0
@@ -239,11 +255,16 @@ def main():
             state[state_index] = {'last_timestamp': 0}
 
         log.set_mintime(mintime)
+        # Fetch the events
         log.get_events()
+        if args.verbose: print("Recieved " + str(len(log.events)) + " logs from the " + log.__class__.__name__)
+        # Format the events and write them to the logs
         log.write_logs()
+        # Update our last recorded timestamp
         state[state_index]['last_timestamp'] = log.update_mintime()
 
-    write_state_to_file(state_path, state)
+        # Save our state to a json file
+        write_state_to_file(state_file, state)
 
 if __name__ == '__main__':
     main()
