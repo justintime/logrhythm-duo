@@ -10,7 +10,7 @@ Some of the additions are:
  * The example only logged to STDOUT.  This version implements a TimedRotatingFile logger that will log the messages to individual log files, of which are rotated nightly and 
 kept for 7 days.  This helps ensure that no logs are lost due to truncation, etc, while also ensuring it doesn't eventually fill up the disk.
 
-This script is intended to be run from any operating system that can run Python.  Use cron on Linux #TODO document this, or a scheduled task on Windows #TODO powershell?.
+This script is intended to be run from any operating system that can run Python.  Use cron on Linux, or a scheduled task on Windows #TODO powershell?.
 
 ## Performance
 On my local Macbook Pro, it takes just over 3 seconds to download the limit (1,000 entries x 3 logs = 3,000 logs), including the startup time for Python.  Because it performs well, I think 
@@ -18,14 +18,34 @@ that enabling a system service mode for this script would likely be overkill.
 
 ## Configure Duo
 
-Setup the Duo side of things by following the "First Steps" section at https://duo.com/docs/splunkapp
+Setup the Duo side of things by following the "First Steps" section at https://duo.com/docs/splunkapp.  Make note of these:
+ * "Integration Key" (ikey)
+ * "Secret Key" (skey)
+ * "API Hostname" (host)
 
-## Configure this script
+## Installation
 ### Configure duo.conf
 Configure duo.conf by setting the ikey, skey, and host values, as shown to you in your Duo control panel under the Admin app.
 
-### Install Python
+### Windows - Install Python
+If you're running the script on any modern Linux distribution, you should have a copy of Python3 already installed, 
+and there's nothing for you to do.
 
+If you'd like to run the script on Windows, you can download the latest Python3 at https://www.python.org/downloads/windows/
+
+### Linux - create normal user, setup cron
+Since we don't need elevated permissions to run this, let's create a dedicated user.
+
+``` bash
+# Create our user:
+sudo useradd -d /home/logrhythm -s /bin/bash -m logrhythm
+# Create our directory and make logrhythm the owner of it:
+sudo mkdir /opt/logrhythm-duo && sudo chown logrhythm:logrhythm /opt/logrhythm-duo && sudo chmod 700 /opt/logrhythm-duo
+# Become the new user and clone this repo:
+sudo su - logrhythm -c 'git clone https://github.com/justintime/logrhythm-duo.git /opt/logrhythm-duo'
+# Edit duo.conf and put in your API keys and host:
+sudo nano /opt/logrhythm-duo/duo.conf
+```
 
 ### Install dependencies
 To install the dependencies of this script, run the following command from the directory of the script:
@@ -33,7 +53,15 @@ To install the dependencies of this script, run the following command from the d
 pip install --requirement requirements.txt
 ```
 
-### Test run
+### Linux - Configure cron
+``` bash
+# Create the cronjob:
+sudo cp /opt/logrhythm-duo/resources/logrhythm-duo /etc/cron.d
+```
+
+### Windows - Configure Task Scheduler
+
+### Testing
 Run the script interactively:
 ``` bash
 python logrhythm-duo.py -v
