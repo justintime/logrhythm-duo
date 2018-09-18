@@ -1,0 +1,5 @@
+# cron.d file for linux
+#
+# This script assumes that you created the same user and directory as those specified in the README
+
+*/5 * * * * logrhythm /opt/logrhythm-duo/logrhythm-duo.py
