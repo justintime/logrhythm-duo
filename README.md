@@ -23,7 +23,7 @@ Setup the Duo side of things by following the "First Steps" section at https://d
  * "Secret Key" (skey)
  * "API Hostname" (host)
 
-## Installation
+## Installation of LogRhythm-Duo
 ### Configure duo.conf
 Configure duo.conf by setting the ikey, skey, and host values, as shown to you in your Duo control panel under the Admin app.
 
@@ -50,7 +50,7 @@ sudo nano /opt/logrhythm-duo/duo.conf
 ### Install dependencies
 To install the dependencies of this script, run the following command from the directory of the script:
 ``` bash
-pip install --requirement requirements.txt
+pip3 install --requirement requirements.txt
 ```
 
 ### Linux - Configure cron
@@ -60,6 +60,21 @@ sudo cp /opt/logrhythm-duo/resources/logrhythm-duo /etc/cron.d
 ```
 
 ### Windows - Configure Task Scheduler
+
+## Setup of MPE Parsing Rules
+
+## Setup of Duo Log Source
+
+ 1. Deployment Manager -> System Monitors tab, double click the machine running the logrhythm-duo script.
+ 1. Right click the grid, and select "New".
+ 1. For the "Log Source Type", select your new "Flat File - Duo Security 2FA" source.
+ 1. Select "LogRhythm Default" from the Log MPE Policy.
+ 1. Select the "Flat File Settings" tab.
+ 1. Put the full path to the log files in the File Path box.  If you used the examples for Linux, you'd 
+ use '/opt/logrhythm-duo/logs/*.log*'
+ 1. In the "Date Parsing Format" field, select 'Linux Audit Log (Unix time)'
+ 1. Click the "OK" button.
+
 
 ### Testing
 Run the script interactively:
