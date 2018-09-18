@@ -77,7 +77,7 @@ sudo cp /opt/logrhythm-duo/resources/logrhythm-duo /etc/cron.d
 
 
 ### Testing
-Run the script interactively:
+Run the script verbosely from the command line:
 ``` bash
 python logrhythm-duo.py -v
 ```
