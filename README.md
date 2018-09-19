@@ -10,7 +10,7 @@ Some of the additions are:
  * The example only logged to STDOUT.  This version implements a TimedRotatingFile logger that will log the messages to individual log files, of which are rotated nightly and 
 kept for 7 days.  This helps ensure that no logs are lost due to truncation, etc, while also ensuring it doesn't eventually fill up the disk.
 
-This script is intended to be run from any operating system that can run Python.  Use cron on Linux, or a scheduled task on Windows #TODO powershell?.
+This script is intended to be run from any operating system that can run Python.  Use cron on Linux, or a scheduled task on Windows.
 
 ## Performance
 On my local Macbook Pro, it takes just over 3 seconds to download the limit (1,000 entries x 3 logs = 3,000 logs), including the startup time for Python.  Because it performs well, I think 
@@ -24,16 +24,14 @@ Setup the Duo side of things by following the "First Steps" section at https://d
  * "API Hostname" (host)
 
 ## Installation of LogRhythm-Duo
-### Configure duo.conf
-Configure duo.conf by setting the ikey, skey, and host values, as shown to you in your Duo control panel under the Admin app.
 
-### Windows - Install Python
-If you're running the script on any modern Linux distribution, you should have a copy of Python3 already installed, 
-and there's nothing for you to do.
+### Windows Only - Install Python and download zip file
+Download the latest Python3 at https://www.python.org/downloads/windows/
 
-If you'd like to run the script on Windows, you can download the latest Python3 at https://www.python.org/downloads/windows/
+Then, download the code from this project at https://github.com/justintime/logrhythm-duo/archive/master.zip  Extract the 
+resulting file to a directory named ```C:\LogRhythm\LogRhythm-Duo```.  Once extracted, edit the duo.conf file in ```C:\LogRhythm\LogRhythm-Duo\```.
 
-### Linux - create normal user, setup cron
+### Linux Only - create normal user, setup cron
 Since we don't need elevated permissions to run this, let's create a dedicated user.
 
 ``` bash
@@ -46,6 +44,8 @@ sudo su - logrhythm -c 'git clone https://github.com/justintime/logrhythm-duo.gi
 # Edit duo.conf and put in your API keys and host:
 sudo nano /opt/logrhythm-duo/duo.conf
 ```
+### Configure duo.conf
+Configure duo.conf by setting the ikey, skey, and host values, as shown to you in your Duo control panel under the Admin app.
 
 ### Install dependencies
 To install the dependencies of this script, run the following command from the directory of the script:
