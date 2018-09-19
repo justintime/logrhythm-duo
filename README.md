@@ -31,6 +31,9 @@ Download the latest Python3 at https://www.python.org/downloads/windows/
 Then, download the code from this project at https://github.com/justintime/logrhythm-duo/archive/master.zip  Extract the 
 resulting file to a directory named ```C:\LogRhythm\LogRhythm-Duo```.  Once extracted, edit the duo.conf file in ```C:\LogRhythm\LogRhythm-Duo\```.
 
+### Windows Only - Run setup script
+To install with the default path of ```C:\LogRhythm\logrhythm-duo```, simply run the included ```resources\setup.ps1``` script **as Administrator**
+
 ### Linux Only - create normal user, setup cron
 Since we don't need elevated permissions to run this, let's create a dedicated user.
 
@@ -44,10 +47,10 @@ sudo su - logrhythm -c 'git clone https://github.com/justintime/logrhythm-duo.gi
 # Edit duo.conf and put in your API keys and host:
 sudo nano /opt/logrhythm-duo/duo.conf
 ```
-### Configure duo.conf
+### All Platforms - Configure duo.conf
 Configure duo.conf by setting the ikey, skey, and host values, as shown to you in your Duo control panel under the Admin app.
 
-### Install dependencies
+### All Platforms - Install dependencies
 To install the dependencies of this script, run the following command from the directory of the script:
 ``` bash
 pip3 install --requirement requirements.txt
@@ -60,6 +63,7 @@ sudo cp /opt/logrhythm-duo/resources/logrhythm-duo /etc/cron.d
 ```
 
 ### Windows - Configure Task Scheduler
+If you ran the setup script, you should have a scheduled task already running!
 
 ## Setup of MPE Parsing Rules
 
