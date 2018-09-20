@@ -29,7 +29,7 @@ Setup the Duo side of things by following the "First Steps" section at https://d
 Download the latest Python3 at https://www.python.org/downloads/windows/
 
 Then, download the code from this project at https://github.com/justintime/logrhythm-duo/archive/master.zip  Extract the 
-resulting file to a directory named ```C:\LogRhythm\LogRhythm-Duo```.  Once extracted, edit the duo.conf file in ```C:\LogRhythm\LogRhythm-Duo\```.
+zip file.
 
 ### Windows Only - Run setup script
 To install with the default path of ```C:\LogRhythm\logrhythm-duo```, simply run the included ```resources\setup.ps1``` script **as Administrator**.  Also note, if you're running the LogRhythm SysMon Agent as a dedicated user instead of SYSTEM, please add the user 
