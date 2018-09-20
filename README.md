@@ -78,7 +78,7 @@ If you ran the setup script, you should have a scheduled task already running!
  1. Select "LogRhythm Default" from the Log MPE Policy.
  1. Select the "Flat File Settings" tab.
  1. Put the full path to the log files in the File Path box.  If you used the examples for Linux, you'd 
- use '/opt/logrhythm-duo/logs/*.log*'
+ use ```/opt/logrhythm-duo/logs/*.log*```
  1. In the "Date Parsing Format" field, select 'Linux Audit Log (Unix time)'
  1. Click the "OK" button.
 
