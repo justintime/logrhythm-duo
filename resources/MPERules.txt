@@ -1,3 +1,5 @@
+# Credit for these goes to Nic Ritter at LogRhythm, I've only made small changes to them.
+
 Rule Name: Duo Rule 003 - 2FA User Auth
 Common Event: Authentication Activity
 Rule Status: Production
