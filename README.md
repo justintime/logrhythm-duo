@@ -28,6 +28,8 @@ Setup the Duo side of things by following the "First Steps" section at https://d
 ### Windows Only - Install Python and download zip file
 Download the latest Python3 at https://www.python.org/downloads/windows/
 
+During installation, enable Python for all users, and check the box to update the environment variables.
+
 Then, download the code from this project at https://github.com/justintime/logrhythm-duo/archive/master.zip  Extract the 
 zip file.
 
