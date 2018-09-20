@@ -1,10 +1,11 @@
 # If your LogRhythm Agent runs as a user other than NT AUTHORITY\SYSTEM, put that in the variable below:
 # EG MYDOMAIN\LogRhythm
-$agent_user = 'BUCKLEHQ\justine'
+$agent_user = ''
 
 #Requires -RunAsAdministrator
 
 $path       = 'C:\LogRhythm\logrhythm-duo'
+$executable = "py -3 $path\logrhythm-duo.py"
 $taskName   = 'Download Duo logs for LogRhythm'
 
 $action   = New-ScheduledTaskAction -Execute py -Argument "-3 $path\logrhythm-duo.py"
