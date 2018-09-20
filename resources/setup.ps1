@@ -5,6 +5,8 @@ $agent_user = ''
 #Requires -RunAsAdministrator
 
 $path       = 'C:\LogRhythm\logrhythm-duo'
+
+##### Create our scheduled task #####
 $executable = "py -3 $path\logrhythm-duo.py"
 $taskName   = 'Download Duo logs for LogRhythm'
 
@@ -19,6 +21,7 @@ try {
 }
 Set-ScheduledTask $taskName -Trigger $trigger
 
+##### Install to our permanent home #####
 # Configure script directory
 if (!(Test-Path ($path))) {
   New-Item -Path $path -ItemType directory
@@ -32,7 +35,7 @@ if (Test-Path ("$path\duo.conf")) {
 $source = (Get-Item $PSScriptRoot).parent.Fullname
 robocopy $source $path $robocopy_args
 
-
+##### Lock down ACL's #####
 $acl = get-acl $path
 # Disable and delete inheritance
 $acl.SetAccessRuleProtection($true,$false)
@@ -69,4 +72,5 @@ if ($agent_user) {
 
 $acl | Set-Acl "$path\logs"
 
+##### Fire up wordpad to edit duo.conf #####
 Start-Process -FilePath "$($env:Programfiles)\Windows NT\Accessories\wordpad.exe" -ArgumentList "$path\duo.conf"
