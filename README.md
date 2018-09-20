@@ -68,9 +68,53 @@ sudo cp /opt/logrhythm-duo/resources/logrhythm-duo /etc/cron.d
 ### Windows - Configure Task Scheduler
 If you ran the setup script, you should have a scheduled task already running!
 
-## Setup of MPE Parsing Rules
+## Setup of New Log Source and MPE Parsing Rules in the LogRhythm Console
+Much of the credit here goes to Nicholas Ritter at LogRhythm for coming up with the MPE Rules.
 
-## Setup of Duo Log Source
+### Create a new log source type
+ 1. Deployment Manager -> Tools menu -> Knowledge -> Log Source Type Manager
+ 1. Click the + button
+ 1. Fill out the following fields:
+
+  | Field              | Value |
+  | -----              | ----- |
+  | Name               | Flat File - Duo Security 2FA |
+  | Abbreviation       | Duo2FA |
+  | Log Format         | Text File |
+  | Brief Description  | Duo Security 2FA logs utilizing the Duo Python Client API |
+  | Additional Details | Up to you :) |
+
+### Create new MPE rules for the Duo2FA Log Source Type
+ 1. Deployment Manager -> Tools menu -> Knowledge -> MPE Rule Builder
+ 1. Open up [MPERules.txt](resources/MPERules.txt) in a viewer.
+ 1. For each rule in [MPERules.txt](resources/MPERules.txt), create a new rule by:
+    1. Clicking the + button.
+    1. Select "Flat File - Duo Security 2FA" by expanding "Custom Log Source Types" in the "Log Message Source Type Associations" pane in the top right.
+    1. Fill in the Rule Name, Common Event, Rule Status, Brief Description, and Base-rule Regular Expression from [MPERules.txt](resources/MPERules.txt).
+    1. Click the disk icon to save the rule.
+   
+### Specify the MPE rule sort order
+  1. While still in the MPE Rule Editor, click the folder icon to open a rule library.
+  1. Type "duo" in the filter box under "Select Log Message Source Type", and click on "Flat File - Duo Security 2FA".
+  1. Edit menu -> Edit Base-rule Sorting
+  1. Ensure that the rules are in the **EXACT** order as listed in [MPERules.txt](resources/MPERules.txt).
+  1. Click the OK button.
+  1. Close the Rule Builder window.
+  
+### Create a Log Processing Policy for the MPE Rule
+ 1. Deployment Manager -> Log Processing Policies tab
+ 1. Click the + button to create a new policy.
+ 1. Select "Custom" from the Record Type Filter, and then select "Flat File - Duo Security 2FA" from the "Log Source Type" pane.
+ 1. Press the OK button.
+ 1. Enter "LogRhythm Default" for the Name.
+ 1. Enter "Duo Security 2FA logs utilizing the Duo Python Client API" for the Brief Description.
+ 1. **IMPORTANT**: Deselect the “Allow Automatic MPE Rule Sorting” box (make sure it is not checked)
+ 1. Right-click inside the Rules grid and click "Check All Displayed"
+ 1. Right-click inside the grid and select "Properties"
+ 1. Click the "Enabled" box, then click the OK button.
+ 1. Click the OK button to dismiss the MPE Policy Editor window.
+
+## Setup of Duo Log Source in the LogRhythm Console
 
  1. Deployment Manager -> System Monitors tab, double click the machine running the logrhythm-duo script.
  1. Right click the grid, and select "New".
