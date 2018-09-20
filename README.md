@@ -32,7 +32,8 @@ Then, download the code from this project at https://github.com/justintime/logrh
 resulting file to a directory named ```C:\LogRhythm\LogRhythm-Duo```.  Once extracted, edit the duo.conf file in ```C:\LogRhythm\LogRhythm-Duo\```.
 
 ### Windows Only - Run setup script
-To install with the default path of ```C:\LogRhythm\logrhythm-duo```, simply run the included ```resources\setup.ps1``` script **as Administrator**
+To install with the default path of ```C:\LogRhythm\logrhythm-duo```, simply run the included ```resources\setup.ps1``` script **as Administrator**.  Also note, if you're running the LogRhythm SysMon Agent as a dedicated user instead of SYSTEM, please add the user 
+to the top of setup.ps1 as indicated in the comments.
 
 ### Linux Only - create normal user, setup cron
 Since we don't need elevated permissions to run this, let's create a dedicated user.
