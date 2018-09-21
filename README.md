@@ -7,6 +7,9 @@ Some of the additions are:
  * Fixed some code that forced it to be ran on Windows.  The code now works on Windows, Mac, and Linux.
  * Added support for command-line arguments and help documentation.
  * Detects when Duo starts throttling requests, and exits cleanly.
+ * In the Administrator logs, under certain conditions a JSON object is logged in the field named description.  Since JSON by default 
+ doesn't have consistent ordering of keys, this makes it hard to apply a regex to.  This script will sort the keys of the JSON object
+ so that the parsing rules will behave consistently.
  * The example only logged to STDOUT.  This version implements a TimedRotatingFile logger that will log the messages to individual log files, of which are rotated nightly and 
 kept for 7 days.  This helps ensure that no logs are lost due to truncation, etc, while also ensuring it doesn't eventually fill up the disk.
 
@@ -91,6 +94,9 @@ Much of the credit here goes to Nicholas Ritter at LogRhythm for coming up with 
     1. Clicking the + button.
     1. Select "Flat File - Duo Security 2FA" by expanding "Custom Log Source Types" in the "Log Message Source Type Associations" pane in the top right.
     1. Fill in the Rule Name, Common Event, Rule Status, Brief Description, and Base-rule Regular Expression from [MPERules.txt](resources/MPERules.txt).
+      1. For rules that have sub-rules, right-click the grid under the Sub-Rules tab, and click new.
+      1. Fill in the Rule Name, Common Event, Rule Status, Brief Description, and Mapping Tags from [MPERules.txt](resources/MPERules.txt).
+      1. Click the OK button, and repeat for all sub-rules.
     1. Click the disk icon to save the rule.
    
 ### Specify the MPE rule sort order
@@ -108,7 +114,6 @@ Much of the credit here goes to Nicholas Ritter at LogRhythm for coming up with 
  1. Press the OK button.
  1. Enter "LogRhythm Default" for the Name.
  1. Enter "Duo Security 2FA logs utilizing the Duo Python Client API" for the Brief Description.
- 1. **IMPORTANT**: Deselect the “Allow Automatic MPE Rule Sorting” box (make sure it is not checked)
  1. Right-click inside the Rules grid and click "Check All Displayed"
  1. Right-click inside the grid and select "Properties"
  1. Click the "Enabled" box, then click the OK button.
