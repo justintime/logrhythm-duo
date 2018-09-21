@@ -35,13 +35,13 @@ Rule Name: Duo Admin Login Success
 Common Event: Authentication Activity
 Rule Status: Production
 Brief Description: Duo Administrator Login
-Regular Expression: eventtype="(?<group>administrator)",username=(?<login>.*?)",action="(?<vmid>(?<action>Admin Login))",description="{.*?"ip_address":\s+"(?<sip>.*?)",
+Regular Expression: eventtype="(?<group>administrator)",username="(?<login>.*?)",action="(?<vmid>(?<action>Admin Login))",description="{.*?"ip_address":\s+"(?<sip>.*?)"
 
 Rule Name: Duo Admin Login or 2FA Failure
 Common Event: Authentication Failure Activity
 Rule Status: Production
 Brief Description: Duo Administrator Login or 2FA Failure
-Regular Expression: eventtype="(?<group>administrator)",username=(?<login>.*?)",action="(?<vmid>(?<action>Admin (Login|2FA) Error))",description="{.*?"error":\s+"(?<reason>.*?)",.*?"ip_address":\s+"(?<sip>.*?)",
+Regular Expression: eventtype="(?<group>administrator)",username="(?<login>.*?)",action="(?<vmid>(?<action>Admin (Login|2FA) Error))",description="{.*?"error":\s+"(?<reason>.*?)",.*?"ip_address":\s+"(?<sip>.*?)"
 
 Rule Name: Duo Admin Object Manipulation
 Common Event: Configuration Modified: Application
