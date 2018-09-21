@@ -77,11 +77,19 @@ class AdministratorLog(BaseLog):
         """
         Return an list of log messages
         """
+        # To get a list of current actions without a friendly label, run:
+        # cat AdministratorLog.log* | cut -d',' -f5 | cut -d'"' -f2 | sort -u | grep _
         friendly_label = {
-            'admin_login': "Admin Login",
+            'ad_sync_begin' : "Active Directory Sync Start",
+            'ad_sync_finish' : "Active Directory Sync Finish",
+            'admin_2fa_error': "Admin 2FA Error",
             'admin_create': "Create Admin",
-            'admin_update': "Update Admin",
             'admin_delete': "Delete Admin",
+            'admin_login': "Admin Login",
+            'admin_login_error': "Admin Login Error",
+            'admin_reset_password': "Admin Password Reset",
+            'admin_send_reset_password_email': "Admin Send Password Reset Email",
+            'admin_update': "Update Admin",
             'customer_update': "Update Customer",
             'group_create': "Create Group",
             'group_udpate': "Update Group",
@@ -89,6 +97,7 @@ class AdministratorLog(BaseLog):
             'integration_create': "Create Integration",
             'integration_update': "Update Integration",
             'integration_delete': "Delete Integration",
+            'integration_skey_view': "Admin Viewed Integration Secret Key",
             'phone_create': "Create Phone",
             'phone_update': "Update Phone",
             'phone_delete': "Delete Phone",
