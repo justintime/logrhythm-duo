@@ -1,4 +1,4 @@
-# These rules are based on ones provided by Nic Ritter at LogRhythm
+# These rules are based on ones provided by Nicholas Ritter and Robert Haight at LogRhythm
 Rule Name: Duo 2FA User Auth Activity
 Common Event: Authentication Activity
 Rule Status: Production
