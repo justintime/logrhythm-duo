@@ -120,6 +120,12 @@ class AdministratorLog(BaseLog):
             if event['object']:
                 fmtstr += ',object="%(object)s"'
             if event['description']:
+                # Duo's 'description' field is JSON, and isn't sorted which makes
+                # LogRhythm's regex parsing really hard.  Here, we spend a few CPU 
+                # cycles to ensure the json is sorted by keys
+                dict = json.loads(event['description'])
+                sorted = json.dumps(dict, sort_keys=True)
+                event['description'] = sorted
                 fmtstr += ',description="%(description)s"'
 
             self.logger.info(fmtstr % event)
