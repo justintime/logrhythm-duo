@@ -1,10 +1,29 @@
-# Credit for these goes to Nic Ritter at LogRhythm, I've only made small changes to them.
-
-Rule Name: Duo 2FA User Auth
+# These rules are based on ones provided by Nic Ritter at LogRhythm
+Rule Name: Duo 2FA User Auth Activity
 Common Event: Authentication Activity
 Rule Status: Production
 Brief Description: Duo 2FA User Auth
 Regular Expression: eventtype="(?<group>authentication)",username="(?<login>.*?)",factor="(?<vmid>(?<action>.*?))",result="(?<tag1>(?<result>.*?))",reason="(?<tag2>(?<reason>.*?))",ip="(?<sip>.*?)",integration="(?<subject>(?<policy>.*?))",newenrollment="(?<tag3>.*?)"
+
+## Sub-Rules ##
+
+        Sub-Rule Name: Duo 2FA User Auth Success
+        Common Event: Authentication Activity
+        Rule Status: Production
+        Brief Description: Duo 2FA User Auth Success
+        Mapping Tags: result Equal To (=) SUCCESS
+
+        Sub-Rule Name: Duo 2FA User Auth Failure
+        Common Event: Authentication Failure Activity
+        Rule Status: Production
+        Brief Description: Duo 2FA User Auth Failure
+        Mapping Tags: result Equal To (=) FAILURE
+
+        Rule Name: Duo 2FA User Auth Fraud
+        Common Event: Failed General Attack Activity
+        Rule Status: Production
+        Brief Description: A user marked a 2FA request as fraudulent
+        Mapping Tags: result Equal To (=) FRAUD
 
 Rule Name: Duo Telephony Activity
 Common Event: Authentication Activity
@@ -16,40 +35,16 @@ Rule Name: Duo Admin Login Success
 Common Event: Authentication Activity
 Rule Status: Production
 Brief Description: Duo Administrator Login
-Regular Expression: eventtype="(?<group>administrator)",username=(?<login>.*?)",action="(?<vmid>(?<action>Admin Login))",description="{"ip_address":\s+"(?<sip>.*?)",
+Regular Expression: eventtype="(?<group>administrator)",username=(?<login>.*?)",action="(?<vmid>(?<action>Admin Login))",description="{.*?"ip_address":\s+"(?<sip>.*?)",
 
-Rule Name: Duo Admin Login Failure
+Rule Name: Duo Admin Login or 2FA Failure
 Common Event: Authentication Failure Activity
 Rule Status: Production
-Brief Description: Duo Administrator Login Failure
-Regular Expression: eventtype="(?<group>administrator)",username=(?<login>.*?)",action="(?<vmid>(?<action>Admin Login Error))",description="{"ip_address":\s+"(?<sip>.*?)", "error": "(?<reason>.*?)",
+Brief Description: Duo Administrator Login or 2FA Failure
+Regular Expression: eventtype="(?<group>administrator)",username=(?<login>.*?)",action="(?<vmid>(?<action>Admin (Login|2FA) Error))",description="{.*?"error":\s+"(?<reason>.*?)",.*?"ip_address":\s+"(?<sip>.*?)",
 
 Rule Name: Duo Admin Object Manipulation
 Common Event: Configuration Modified: Application
 Rule Status: Production
 Brief Description: Duo Administrator Object Manipulation
 Regular Expression: eventtype="(?<group>administrator)",username=(?<login>.*?)",action="(?<vmid>(?<action>.*?))",(object="(?<object>(?<account>.*?))",)?(?<subject>.*?$)
-
-Rule Name: Duo General User Activity
-Common Event: Object Accessed
-Rule Status: Production
-Brief Description: Duo General User Activity
-Regular Expression: .*?,.*?,(?<login>.*?),(?<vmid>.*?),((?<sender>\d{3}\-\d{3}\-\d{4})?).*?,((?<sip>((?<sipv4>(?<sipv4>1??(1??\d{1,2}|2[0-4]\d|25[0-5])\.(1??\d{1,2}|2[0-4]\d|25[0-5])\.(1??\d{1,2}|2[0-4]\d|25[0-5])\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)))|(?<sipv6>(?<sipv6>1??((?:(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4}|(?=(?:[0-9A-Fa-f]{1,4}:){0,7}[0-9A-Fa-f]{1,4}\z)|(([0-9A-Fa-f]{1,4}:){1,7}|:)((:[0-9A-Fa-f]{1,4}){1,7}|:))))))).*?),(?<dname>.*?),(?<object>.*?),(?<subject>.*?)$
-
-Rule Name: Duo Admin Console Activities
-Common Event: Administrative Operation
-Rule Status: Production
-Brief Description: Duo Admin Console Activities
-Regular Expression: .*?"(?<vmid>.*?)\s(?<process>.*?by user)\s(?<object>.*?)\son(?<objectname>.*?)\..*?\{(?<subject>(("device":"(?<sender>.*?)", "(ip_address": "(?<sip>.*?)"))?)|(("platform.*?")?).*?)\}.*?
-
-Rule Name: Duo Log File Created
-Common Event: File Write
-Rule Status: Production
-Brief Description: Duo Log File Created
-Regular Expression: #\s(?<subject>.*?)$
-
-Rule Name: Duo No Log Entries Found
-Common Event: Audit Message
-Rule Status: Production
-Brief Description: Duo No Log Entries Found (Catch All??)
-Regular Expression: .*INFO,,(?<subject>.*?),.*
