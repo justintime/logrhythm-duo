@@ -29,7 +29,7 @@ Rule Name: Duo Telephony Activity
 Common Event: Authentication Activity
 Rule Status: Production
 Brief Description: Duo Telephony Activity
-Regular Expression: eventtype="(?<subject>telephony)",context="(?<vmid>.*?),type="(?<command>.*?)",phone="(?<object>.*?)",credits="(?<amount>[0123456789\.]+)"
+Regular Expression: eventtype="(?<subject>telephony)",context="(?<vmid>.*?)",type="(?<command>.*?)",phone="(?<object>.*?)",credits="(?<amount>[0123456789\.]+)"
 
 Rule Name: Duo Admin Login Success
 Common Event: Authentication Activity
@@ -47,4 +47,4 @@ Rule Name: Duo Admin Object Manipulation
 Common Event: Configuration Modified: Application
 Rule Status: Production
 Brief Description: Duo Administrator Object Manipulation
-Regular Expression: eventtype="(?<group>administrator)",username=(?<login>.*?)",action="(?<vmid>(?<action>.*?))",(object="(?<object>(?<account>.*?))",)?(?<subject>.*?$)
+Regular Expression: eventtype="(?<group>administrator)",username="(?<login>.*?)",action="(?<vmid>(?<action>.*?))",(object="(?<object>(?<account>.*?))",)?(?<subject>.*?$)
